@@ -30,6 +30,7 @@ export default function LecturerProfilePage({
   const [activeTab, setActiveTab] = useState<"materials" | "reviews">(
     "reviews",
   );
+  console.log(id, profile)
 
   if (isLoading) {
     return (

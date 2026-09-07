@@ -32,7 +32,7 @@ export function DashboardSidebar() {
     user?.role === "admin" ? [...studentLinks, ...adminLinks] : studentLinks;
 
   return (
-    <aside className="w-full md:w-64 bg-card border-r border-border min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between">
+    <aside className="w-full md:w-64 bg-card border-r border-border h-[calc(100vh-4rem)] p-4 flex flex-col justify-between hidden md:flex">
       <div className="space-y-6">
         <div className="px-3 py-2">
           <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">

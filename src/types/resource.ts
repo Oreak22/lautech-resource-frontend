@@ -16,9 +16,17 @@ export interface Resource {
   fileUrl: string;
   fileFormat: string;
   fileSize: number;
+  uploaderId: { _id: string; name: string };
   courseId: PopulatedCourse;
   lecturerId: PopulatedLecturer;
   status: "pending" | "approved" | "rejected";
+  session?: string;
+  likes: number;
+  dislikes: number;
+  likedBy: string[];
+  dislikedBy: string[];
+  aiSummary?: string;
+  aiConfidenceScore?: number;
   keywords: string[];
   createdAt: string;
 }

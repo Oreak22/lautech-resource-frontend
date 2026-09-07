@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Upload, Menu } from "lucide-react";
+import { GraduationCap, Upload, Menu, X, User } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -13,7 +14,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: "Resource Vault", href: "/" },
+    { name: "Resource Vault", href: "/resources" },
     { name: "Lecturer Directory", href: "/lecturers" },
     { name: "How it Works", href: "/how-it-works" },
     { name: "Rules & Conduct", href: "/rules" },
@@ -33,8 +34,8 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Desktop / Large Tablet Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -53,14 +54,17 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Actions: Sign In / Upload */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* Actions: Sign In / Upload (Desktop) */}
+        <div className="hidden lg:flex items-center gap-4">
+          <ThemeToggle />
+          
           {user ? (
             <div className="flex items-center gap-3">
               <Link
                 href="/dashboard"
-                className="text-sm font-mono text-muted-foreground hover:text-foreground"
+                className="flex items-center gap-1.5 text-sm font-mono text-muted-foreground hover:text-foreground transition-colors"
               >
+                <User className="h-4 w-4" />
                 @{user.name.toLowerCase().replace(/\s+/g, "_")}
               </Link>
               <Button variant="outline" size="sm" onClick={logout}>
@@ -70,7 +74,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/auth"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
             >
               Sign In
             </Link>
@@ -84,30 +88,75 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden text-foreground p-2"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+        {/* Mobile / Tablet Menu Toggle & Theme */}
+        <div className="lg:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            className="text-foreground p-2 hover:bg-muted rounded-md transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile / Tablet Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-card p-4 space-y-3">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm font-medium text-muted-foreground hover:text-primary py-2"
-            >
-              {link.name}
+        <div className="lg:hidden absolute top-16 left-0 w-full border-b border-border bg-background p-4 space-y-4 shadow-xl">
+          
+          {/* Auth State in Mobile */}
+          {user ? (
+            <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg border border-border">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <User className="h-5 w-5 text-primary shrink-0" />
+                <span className="text-sm font-mono truncate">
+                  @{user.name.toLowerCase().replace(/\s+/g, "_")}
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { logout(); setMobileMenuOpen(false); }}
+              >
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="outline" className="w-full justify-center">
+                Sign In
+              </Button>
             </Link>
-          ))}
-          <div className="pt-2 border-t border-border flex flex-col gap-2">
+          )}
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col space-y-1">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+          </nav>
+          
+          {/* Upload Button */}
+          <div className="pt-2 border-t border-border">
             <Link href="/upload" onClick={() => setMobileMenuOpen(false)}>
               <Button className="w-full gap-2">
                 <Upload className="h-4 w-4" />

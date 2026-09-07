@@ -27,9 +27,7 @@ export default function AdminDashboardPage() {
   const { data: queue, isLoading, isError } = useModerationQueue();
   const { data: analytics, isLoading: analyticsLoading } = useAdminAnalytics();
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-background py-8 px-4 md:px-8">
+    <div className="py-8 px-4 md:px-8">
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -144,8 +142,7 @@ export default function AdminDashboardPage() {
             ))}
           </div>
         </div>
-      </main>
-    </>
+    </div>
   );
 }
 
