@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layouts/Navbar";
 import { VerifiedCard } from "@/components/ui/verified-card";
 import { useLecturerProfile } from "@/hooks/useLecturerProfile";
 import { ReviewFeed } from "@/components/lecturers/ReviewFeed";
+import { ResourceCard } from "@/components/resources/ResourceCard";
 import {
   GraduationCap,
   Building2,
@@ -16,6 +17,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShareMenu } from "@/components/share/ShareMenu";
 
 export default function LecturerProfilePage({
   params,
@@ -30,8 +32,6 @@ export default function LecturerProfilePage({
   const [activeTab, setActiveTab] = useState<"materials" | "reviews">(
     "reviews",
   );
-  console.log(id, profile)
-
   if (isLoading) {
     return (
       <>
@@ -136,6 +136,16 @@ export default function LecturerProfilePage({
                   </span>
                 </div>
               </div>
+              <div className="mt-4">
+                <ShareMenu
+                  path={`/lecturers/${profile._id}`}
+                  title={`${profile.name} — LAUTECH Lecturer Profile`}
+                  description={`${profile.department || "LAUTECH"} lecturer · ${profile.resources?.length || 0} course materials · ${profile.reviews?.length || 0} student reviews`}
+                  size="sm"
+                  label="Share profile"
+                  className="gap-2"
+                />
+              </div>
             </div>
           </VerifiedCard>
 
@@ -159,11 +169,19 @@ export default function LecturerProfilePage({
 
               <div className="pt-4">
                 {activeTab === "materials" ? (
-                  <div className="text-center py-12 border border-dashed border-border rounded-xl">
-                    <p className="text-sm text-muted-foreground">
-                      Course materials grid will render here.
-                    </p>
-                  </div>
+                  profile.resources?.length ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {profile.resources.map((resource) => (
+                        <ResourceCard key={resource._id} resource={resource} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 border border-dashed border-border rounded-xl">
+                      <p className="text-sm text-muted-foreground">
+                        No approved course materials are linked to this lecturer yet.
+                      </p>
+                    </div>
+                  )
                 ) : (
                   <ReviewFeed
                     lecturerId={profile._id}

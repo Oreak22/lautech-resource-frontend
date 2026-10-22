@@ -1,11 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface User {
-  _id(_id: any): unknown;
+export interface User {
   id: string;
+  _id?: string;
   name: string;
   role: string;
+  email?: string;
+  matricNumber?: string;
+  phone?: string;
+  department?: string;
+  faculty?: string;
+  currentLevel?: string;
+  bio?: string;
 }
 
 interface AuthState {

@@ -3,8 +3,15 @@
 import { useState } from "react";
 import { Resource } from "@/types/resource";
 import { VerifiedCard } from "@/components/ui/verified-card";
-import { ThumbsUp, ThumbsDown, Download, GraduationCap, User } from "lucide-react";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Download,
+  GraduationCap,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { axiosClient } from "@/lib/api/axiosClient";
@@ -12,8 +19,11 @@ import { axiosClient } from "@/lib/api/axiosClient";
 export function ResourceCard({ resource }: { resource: Resource }) {
   const { user } = useAuthStore();
   const isPastQuestion = resource.category === "Past Question";
-  const aiSnippet = resource.aiSummary || "Covers essential topics related to this course.";
-  const aiMatch = resource.aiConfidenceScore ? `${Math.round(resource.aiConfidenceScore * 100)}% Academic Match` : "AI Checked";
+  const aiSnippet =
+    resource.aiSummary || "Covers essential topics related to this course.";
+  const aiMatch = resource.aiConfidenceScore
+    ? `${Math.round(resource.aiConfidenceScore * 100)}% Academic Match`
+    : "AI Checked";
   const session = resource.session || "Any Session";
   const uploader = resource.uploaderId?.name || "Anonymous Student";
 
@@ -21,15 +31,27 @@ export function ResourceCard({ resource }: { resource: Resource }) {
   const dislikedBy = resource.dislikedBy || [];
 
   const [currentLikes, setCurrentLikes] = useState(resource.likes || 0);
-  const [currentDislikes, setCurrentDislikes] = useState(resource.dislikes || 0);
+  const [currentDislikes, setCurrentDislikes] = useState(
+    resource.dislikes || 0,
+  );
   const [userVote, setUserVote] = useState<"up" | "down" | null>(
-    user ? (likedBy.includes(user.id) ? "up" : dislikedBy.includes(user.id) ? "down" : null) : null
+    user
+      ? likedBy.includes(user.id)
+        ? "up"
+        : dislikedBy.includes(user.id)
+          ? "down"
+          : null
+      : null,
   );
   const [isVoting, setIsVoting] = useState(false);
 
   const handleVote = async (type: "up" | "down") => {
     if (!user) {
-      alert("Please sign in to vote on resources.");
+      toast.add({
+        title: "Sign in required",
+        description: "Please sign in to vote on resources.",
+        type: "warning",
+      });
       return;
     }
 
@@ -60,7 +82,9 @@ export function ResourceCard({ resource }: { resource: Resource }) {
     }
 
     try {
-      const res = await axiosClient.put(`/resources/${resource._id}/vote`, { voteType: type });
+      const res = await axiosClient.put(`/resources/${resource._id}/vote`, {
+        voteType: type,
+      });
       if (res.data.success) {
         setCurrentLikes(res.data.data.likes);
         setCurrentDislikes(res.data.data.dislikes);
@@ -82,7 +106,9 @@ export function ResourceCard({ resource }: { resource: Resource }) {
       isVerified={true}
     >
       <div className="flex items-center gap-2 mb-4">
-        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-sm border ${isPastQuestion ? "text-purple-400 border-purple-400/30 bg-purple-400/10" : "text-blue-400 border-blue-400/30 bg-blue-400/10"}`}>
+        <span
+          className={`text-[10px] font-semibold px-2.5 py-1 rounded-sm border ${isPastQuestion ? "text-purple-400 border-purple-400/30 bg-purple-400/10" : "text-blue-400 border-blue-400/30 bg-blue-400/10"}`}
+        >
           {resource.category}
         </span>
         <span className="text-[10px] font-semibold px-2.5 py-1 rounded-sm border border-border bg-background/50 text-foreground">
@@ -98,7 +124,9 @@ export function ResourceCard({ resource }: { resource: Resource }) {
         {isPastQuestion ? (
           <div className="border-l-2 border-emerald-500 pl-3 mb-4">
             <p className="text-xs text-muted-foreground italic">
-              <span className="font-semibold text-emerald-400 not-italic mr-1">AI Snippet:</span>
+              <span className="font-semibold text-emerald-400 not-italic mr-1">
+                AI Snippet:
+              </span>
               {aiSnippet}
             </p>
           </div>
@@ -161,7 +189,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
             <span>{currentDislikes}</span>
           </button>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -169,9 +197,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
             className="h-8 text-xs px-4 bg-transparent border-border hover:bg-background/50"
             asChild
           >
-            <Link href={`/resources/${resource._id}`}>
-              Preview
-            </Link>
+            <Link href={`/resources/${resource._id}`}>Preview</Link>
           </Button>
           {isPastQuestion && (
             <Button
@@ -179,7 +205,11 @@ export function ResourceCard({ resource }: { resource: Resource }) {
               className="h-8 w-8 p-0 bg-emerald-500 hover:bg-emerald-600 text-white"
               asChild
             >
-              <a href={resource.fileUrl} target="_blank" rel="noopener noreferrer">
+              <a
+                href={resource.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Download className="h-4 w-4" />
                 <span className="sr-only">Download</span>
               </a>

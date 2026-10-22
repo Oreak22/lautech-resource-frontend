@@ -10,13 +10,13 @@ import {
   ThumbsUp,
   ThumbsDown,
   MessageSquare,
-  AlertCircle,
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VerifiedCard } from "@/components/ui/verified-card";
 import { Review } from "@/hooks/useLecturerProfile";
+import { ReportDialog } from "@/components/reports/ReportDialog";
 
 const reviewSchema = z.object({
   courseCode: z.string().min(2, "Course code is required"),
@@ -234,9 +234,12 @@ function ReviewItem({
           <ThumbsDown className="h-4 w-4" /> {review.downvotes}
         </button>
 
-        <button className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors">
-          <AlertCircle className="h-3 w-3" /> Report
-        </button>
+        <ReportDialog
+          targetType="review"
+          targetId={review._id}
+          targetLabel={`${review.courseCode} review`}
+          className="ml-auto h-auto gap-1.5 px-0 text-xs text-muted-foreground hover:text-destructive"
+        />
       </div>
     </div>
   );

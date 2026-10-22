@@ -44,6 +44,8 @@ export const useApproveResource = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "moderationQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };
@@ -59,6 +61,8 @@ export const useRejectResource = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "moderationQueue"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 };

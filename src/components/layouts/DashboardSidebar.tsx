@@ -9,6 +9,7 @@ import {
   BookOpen,
   UserCheck,
   Settings,
+  Flag,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -24,6 +25,7 @@ export function DashboardSidebar() {
 
   const adminLinks = [
     { name: "Moderation Queue", href: "/admin/moderation", icon: ShieldAlert },
+    { name: "Content Reports", href: "/admin/reports", icon: Flag },
     { name: "Directory Control", href: "/admin/directory", icon: UserCheck },
     { name: "System Audit Logs", href: "/admin/audit", icon: Settings },
   ];

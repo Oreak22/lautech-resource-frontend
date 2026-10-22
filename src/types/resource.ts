@@ -20,6 +20,7 @@ export interface Resource {
   courseId: PopulatedCourse;
   lecturerId: PopulatedLecturer;
   status: "pending" | "approved" | "rejected";
+  rejectReason?: string;
   session?: string;
   likes: number;
   dislikes: number;

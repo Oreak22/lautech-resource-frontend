@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { axiosClient } from "@/lib/api/axiosClient";
+import { ReportDialog } from "@/components/reports/ReportDialog";
 
 interface ResourceMetadataSidebarProps {
   category: string;
@@ -232,9 +233,13 @@ export function ResourceMetadataSidebar({
         </div>
         
         <div className="text-center">
-          <a href="#" className="text-[10px] text-muted-foreground hover:text-foreground underline underline-offset-4 decoration-border hover:decoration-muted-foreground transition-colors">
-            Report Bad/Non-Academic File
-          </a>
+          <ReportDialog
+            targetType="resource"
+            targetId={resourceId}
+            targetLabel={category === "Past Question" ? `${courseCode} resource` : `${courseCode} ${category.toLowerCase()}`}
+            triggerLabel="Report this resource"
+            className="h-auto p-0 text-[10px] text-muted-foreground underline underline-offset-4 decoration-border hover:text-foreground hover:decoration-muted-foreground"
+          />
         </div>
       </div>
 

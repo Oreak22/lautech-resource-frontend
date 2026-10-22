@@ -6,11 +6,13 @@ import { Search } from "lucide-react";
 import { useSearchResources } from "@/hooks/useSearchResources";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { Navbar } from "@/components/layouts/Navbar";
+import { ResourcePagination } from "@/components/resources/ResourcePagination";
 
 export default function VaultPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | undefined>();
+  const [page, setPage] = useState(1);
 
   // Debounce the search input to prevent API spam while typing
   useEffect(() => {
@@ -18,10 +20,14 @@ export default function VaultPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, activeCategory]);
+
   const { data, isLoading, isError } = useSearchResources({
     q: debouncedSearch,
     category: activeCategory,
-    page: 1,
+    page,
   });
 
   const categories = ["Past Question", "Handout", "Textbook", "Project Report"];
@@ -120,6 +126,13 @@ export default function VaultPage() {
               <ResourceCard key={resource._id} resource={resource} />
             ))}
           </div>
+          {data && (
+            <ResourcePagination
+              currentPage={data.currentPage}
+              totalPages={data.totalPages}
+              onPageChange={setPage}
+            />
+          )}
         </section>
       </main>
     </>

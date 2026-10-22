@@ -14,14 +14,42 @@ import { Button } from "@/components/ui/button";
 interface ResourceFiltersProps {
   category?: string;
   setCategory: (c: string | undefined) => void;
+  department?: string;
+  departments: string[];
+  setDepartment: (department: string | undefined) => void;
+  level?: string;
+  levels: string[];
+  setLevel: (level: string | undefined) => void;
+  semester?: "first" | "second";
+  setSemester: (semester: "first" | "second" | undefined) => void;
 }
 
-export function ResourceFilters({ category, setCategory }: ResourceFiltersProps) {
+export function ResourceFilters({
+  category,
+  setCategory,
+  department,
+  departments,
+  setDepartment,
+  level,
+  levels,
+  setLevel,
+  semester,
+  setSemester,
+}: ResourceFiltersProps) {
   return (
     <div className="w-full max-w-xs space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pr-9 md:pr-0">
         <h2 className="text-xl font-semibold">Filters</h2>
-        <Button variant="link" className="text-primary h-auto p-0 text-sm">
+        <Button
+          variant="link"
+          className="text-primary h-auto p-0 text-sm"
+          onClick={() => {
+            setCategory(undefined);
+            setDepartment(undefined);
+            setLevel(undefined);
+            setSemester(undefined);
+          }}
+        >
           Reset All
         </Button>
       </div>
@@ -30,7 +58,7 @@ export function ResourceFilters({ category, setCategory }: ResourceFiltersProps)
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">Faculty</Label>
           <Select defaultValue="engineering">
-            <SelectTrigger className="bg-background/50 border-border">
+            <SelectTrigger className="w-full bg-background/50 border-border">
               <SelectValue placeholder="Select faculty" />
             </SelectTrigger>
             <SelectContent>
@@ -42,13 +70,22 @@ export function ResourceFilters({ category, setCategory }: ResourceFiltersProps)
 
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">Department</Label>
-          <Select defaultValue="cse">
-            <SelectTrigger className="bg-background/50 border-border">
+          <Select
+            value={department ?? "all"}
+            onValueChange={(value) =>
+              setDepartment(value === "all" ? undefined : (value ?? undefined))
+            }
+          >
+            <SelectTrigger className="w-full bg-background/50 border-border">
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cse">Computer Science & Engineering</SelectItem>
-              <SelectItem value="me">Mechanical Engineering</SelectItem>
+              <SelectItem value="all">All Departments</SelectItem>
+              {departments.map((name) => (
+                <SelectItem key={name} value={name}>
+                  {name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -71,14 +108,46 @@ export function ResourceFilters({ category, setCategory }: ResourceFiltersProps)
         </div>
 
         <div className="space-y-2">
-          <Label className="text-muted-foreground text-sm">Session</Label>
-          <Select defaultValue="2023-2024">
-            <SelectTrigger className="bg-background/50 border-border">
-              <SelectValue placeholder="Select session" />
+          <Label className="text-muted-foreground text-sm">Level</Label>
+          <Select
+            value={level ?? "all"}
+            onValueChange={(value) =>
+              setLevel(value === "all" ? undefined : (value ?? undefined))
+            }
+          >
+            <SelectTrigger className="w-full bg-background/50 border-border">
+              <SelectValue placeholder="Select level" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="2023-2024">2023/2024</SelectItem>
-              <SelectItem value="2022-2023">2022/2023</SelectItem>
+              <SelectItem value="all">All Levels</SelectItem>
+              {levels.map((item) => (
+                <SelectItem key={item} value={item}>
+                  {item} Level
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-muted-foreground text-sm">Semester</Label>
+          <Select
+            value={semester ?? "all"}
+            onValueChange={(value) =>
+              setSemester(
+                value === "all"
+                  ? undefined
+                  : (value as "first" | "second" | null) ?? undefined,
+              )
+            }
+          >
+            <SelectTrigger className="w-full bg-background/50 border-border">
+              <SelectValue placeholder="Select semester" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Semesters</SelectItem>
+              <SelectItem value="first">First Semester (odd codes)</SelectItem>
+              <SelectItem value="second">Second Semester (even codes)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -86,7 +155,7 @@ export function ResourceFilters({ category, setCategory }: ResourceFiltersProps)
         <div className="space-y-2">
           <Label className="text-muted-foreground text-sm">Lecturer</Label>
           <Select defaultValue="adegoke">
-            <SelectTrigger className="bg-background/50 border-border">
+            <SelectTrigger className="w-full bg-background/50 border-border">
               <SelectValue placeholder="Select lecturer" />
             </SelectTrigger>
             <SelectContent>

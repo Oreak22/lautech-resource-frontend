@@ -2,11 +2,15 @@
 
 import { DocumentPreviewer } from "@/components/resources/DocumentPreviewer";
 import { ResourceMetadataSidebar } from "@/components/resources/ResourceMetadataSidebar";
-import { ArrowLeft, Flag, Share2, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useGetResource } from "@/hooks/useGetResource";
-import { use } from 'react';
+import { use, useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { recordRecentResource } from "@/lib/recentResources";
+import { ReportDialog } from "@/components/reports/ReportDialog";
+import { ShareMenu } from "@/components/share/ShareMenu";
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -14,7 +18,18 @@ export default function ResourcePreviewPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const { data: resource, isLoading, isError } = useGetResource(id);
-  console.log(resource)
+  const userId = useAuthStore((state) => state.user?.id);
+
+  useEffect(() => {
+    if (!resource || !userId) return;
+
+    recordRecentResource(userId, {
+      id: resource._id,
+      title: resource.title,
+      category: resource.category,
+      courseCode: resource.courseId?.courseCode || "",
+    });
+  }, [resource, userId]);
 
   if (isLoading) {
     return (
@@ -52,12 +67,21 @@ export default function ResourcePreviewPage({ params }: PageProps) {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="h-9 w-9 bg-card border-border hover:bg-background/80">
-            <Share2 className="w-4 h-4 text-muted-foreground" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-9 w-9 bg-card border-border hover:bg-background/80">
-            <Flag className="w-4 h-4 text-muted-foreground" />
-          </Button>
+          <ShareMenu
+            path={`/resources/${resource._id}`}
+            title={resource.title}
+            description={`${resource.category} · ${resource.courseId?.courseCode || "LAUTECH course resource"}${resource.courseId?.title ? ` — ${resource.courseId.title}` : ""}${resource.aiSummary ? `\n${resource.aiSummary}` : ""}`}
+            className="h-9 w-9 bg-card border-border hover:bg-background/80"
+          />
+          <ReportDialog
+            targetType="resource"
+            targetId={resource._id}
+            targetLabel={resource.title}
+            iconOnly
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 bg-card"
+          />
         </div>
       </header>
 

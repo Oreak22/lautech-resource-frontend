@@ -67,6 +67,12 @@ export function Navbar() {
                 <User className="h-4 w-4" />
                 @{user.name.toLowerCase().replace(/\s+/g, "_")}
               </Link>
+              <Link
+                href="/profile"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                My Profile
+              </Link>
               <Button variant="outline" size="sm" onClick={logout}>
                 Sign Out
               </Button>
@@ -136,6 +142,24 @@ export function Navbar() {
 
           {/* Navigation Links */}
           <nav className="flex flex-col space-y-1">
+            {user && (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  My Dashboard
+                </Link>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  My Profile
+                </Link>
+              </>
+            )}
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (

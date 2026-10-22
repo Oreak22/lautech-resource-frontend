@@ -5,11 +5,18 @@ import { SearchResponse } from "@/types/resource";
 interface UseSearchOptions {
   q?: string;
   category?: string;
+  department?: string;
+  level?: string;
+  semester?: "first" | "second";
+  sortBy?: "newest" | "department" | "level" | "semester";
   courseId?: string;
   page?: number;
+  enabled?: boolean;
 }
 
 export const useSearchResources = (filters: UseSearchOptions) => {
+  const { enabled = true, ...searchFilters } = filters;
+
   return useQuery({
     queryKey: ["resources", "search", filters],
     queryFn: async () => {
@@ -17,7 +24,7 @@ export const useSearchResources = (filters: UseSearchOptions) => {
         "/resources/search",
         {
           params: {
-            ...filters,
+            ...searchFilters,
             limit: 12,
           },
         },
@@ -25,5 +32,6 @@ export const useSearchResources = (filters: UseSearchOptions) => {
       return data;
     },
     staleTime: 5 * 60 * 1000, // Cache results for 5 minutes
+    enabled,
   });
 };
