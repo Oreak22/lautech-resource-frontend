@@ -21,6 +21,7 @@ export function ResourcePagination({
       className="flex items-center justify-center gap-4 pt-2"
     >
       <Button
+        type="button"
         variant="outline"
         size="sm"
         disabled={currentPage <= 1}
@@ -32,6 +33,7 @@ export function ResourcePagination({
         Page {currentPage} of {totalPages}
       </span>
       <Button
+        type="button"
         variant="outline"
         size="sm"
         disabled={currentPage >= totalPages}

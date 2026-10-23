@@ -1,192 +1,184 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { GraduationCap, Menu, Upload, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Upload, Menu, X, User } from "lucide-react";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuthStore } from "@/store/useAuthStore";
+
+const navLinks = [
+  { name: "Resources", href: "/resources" },
+  { name: "Lecturers", href: "/lecturers" },
+  { name: "How it works", href: "/how-it-works" },
+  { name: "Rules & Conduct", href: "/rules" },
+];
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { name: "Resource Vault", href: "/resources" },
-    { name: "Lecturer Directory", href: "/lecturers" },
-    { name: "How it Works", href: "/how-it-works" },
-    { name: "Rules & Conduct", href: "/rules" },
-  ];
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const username = user?.name.toLowerCase().trim().replace(/\s+/g, "_");
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-primary">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="LAUTECH Resource Bank home">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
             <GraduationCap className="h-5 w-5" />
-          </div>
-          <span className="font-bold tracking-tight text-foreground text-lg">
-            lrb
-            <span className="text-primary font-mono text-xs ml-1">vault</span>
+          </span>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            lrb<span className="ml-1 font-mono text-xs font-medium text-primary">vault</span>
           </span>
         </Link>
 
-        {/* Desktop / Large Tablet Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-6">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive
-                    ? "text-primary font-semibold"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
+        <nav aria-label="Main navigation" className="hidden items-center gap-1 xl:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                isActive(link.href)
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
         </nav>
 
-        {/* Actions: Sign In / Upload (Desktop) */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden shrink-0 items-center gap-3 xl:flex">
           <ThemeToggle />
-          
+          <span className="h-7 w-px bg-border" aria-hidden="true" />
+
           {user ? (
-            <div className="flex items-center gap-3">
+            <>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 text-sm font-mono text-muted-foreground hover:text-foreground transition-colors"
+                aria-current={isActive("/dashboard") ? "page" : undefined}
+                className={`inline-flex max-w-40 items-center gap-2 truncate rounded-lg px-2 py-2 text-sm font-medium transition-colors ${isActive("/dashboard") ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                title={`Dashboard for @${username}`}
               >
-                <User className="h-4 w-4" />
-                @{user.name.toLowerCase().replace(/\s+/g, "_")}
+                <User className="h-4 w-4 shrink-0" />
+                <span className="truncate">@{username}</span>
               </Link>
               <Link
                 href="/profile"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                aria-current={isActive("/profile") ? "page" : undefined}
+                className={`whitespace-nowrap text-sm font-medium transition-colors ${isActive("/profile") ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
               >
                 My Profile
               </Link>
-              <Button variant="outline" size="sm" onClick={logout}>
-                Sign Out
-              </Button>
-            </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleLogout}>Sign Out</Button>
+            </>
           ) : (
-            <Link
-              href="/auth"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-            >
-              Sign In
-            </Link>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/auth">Sign In</Link>
+            </Button>
           )}
 
-          <Link href="/upload">
-            <Button className="gap-2 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
+          <Button asChild className="gap-2">
+            <Link href="/upload">
               <Upload className="h-4 w-4" />
               Upload Resource
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
 
-        {/* Mobile / Tablet Menu Toggle & Theme */}
-        <div className="lg:hidden flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 xl:hidden">
           <ThemeToggle />
-          <button
-            className="text-foreground p-2 hover:bg-muted rounded-md transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMobileMenuOpen((open) => !open)}
           >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
 
-      {/* Mobile / Tablet Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-16 left-0 w-full border-b border-border bg-background p-4 space-y-4 shadow-xl">
-          
-          {/* Auth State in Mobile */}
-          {user ? (
-            <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg border border-border">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <User className="h-5 w-5 text-primary shrink-0" />
-                <span className="text-sm font-mono truncate">
-                  @{user.name.toLowerCase().replace(/\s+/g, "_")}
-                </span>
+        <div id="mobile-navigation" className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background p-4 shadow-xl xl:hidden">
+          {user && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <User className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground">@{username}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => { logout(); setMobileMenuOpen(false); }}
-              >
-                Sign Out
-              </Button>
             </div>
-          ) : (
-            <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" className="w-full justify-center">
-                Sign In
-              </Button>
-            </Link>
           )}
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col space-y-1">
+          <nav aria-label="Mobile navigation" className="space-y-1">
             {user && (
               <>
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-current={isActive("/dashboard") ? "page" : undefined}
+                  className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive("/dashboard") ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"}`}
                 >
                   My Dashboard
                 </Link>
                 <Link
                   href="/profile"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-current={isActive("/profile") ? "page" : undefined}
+                  className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive("/profile") ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"}`}
                 >
                   My Profile
                 </Link>
+                <div className="my-2 border-t border-border" />
               </>
             )}
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
+
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                className={`block rounded-lg px-3 py-2.5 text-sm font-medium ${isActive(link.href) ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"}`}
+              >
+                {link.name}
+              </Link>
+            ))}
           </nav>
-          
-          {/* Upload Button */}
-          <div className="pt-2 border-t border-border">
-            <Link href="/upload" onClick={() => setMobileMenuOpen(false)}>
-              <Button className="w-full gap-2">
+
+          <div className="mt-4 grid gap-2 border-t border-border pt-4">
+            <Button asChild className="w-full gap-2">
+              <Link href="/upload" onClick={() => setMobileMenuOpen(false)}>
                 <Upload className="h-4 w-4" />
                 Upload Resource
+              </Link>
+            </Button>
+            {user ? (
+              <Button type="button" variant="outline" className="w-full" onClick={handleLogout}>Sign Out</Button>
+            ) : (
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
               </Button>
-            </Link>
+            )}
           </div>
         </div>
       )}

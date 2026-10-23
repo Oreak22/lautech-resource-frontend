@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import type { ChangeEvent } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +16,7 @@ import {
   Sparkles,
   X,
   Loader2,
+  Images,
 } from "lucide-react";
 import { useCourses, useLecturers } from "@/hooks/useDirectory";
 import {
@@ -29,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { VerifiedCard } from "@/components/ui/verified-card";
 import { Navbar } from "@/components/layouts/Navbar";
+import { convertImagesToPdf } from "@/lib/imageToPdf";
 
 // Zod schema strictly requiring ObjectIds from the dropdowns
 const uploadSchema = z.object({
@@ -45,12 +48,14 @@ type UploadFormValues = z.infer<typeof uploadSchema>;
 export default function UploadPortal() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [step, setStep] = useState<"dropzone" | "processing" | "review">(
+  const [step, setStep] = useState<"dropzone" | "converting" | "processing" | "review">(
     "dropzone",
   );
+  const [convertedImageCount, setConvertedImageCount] = useState(0);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const imagePickerRef = useRef<HTMLInputElement>(null);
 
   const { data: courses } = useCourses();
   const { data: lecturers } = useLecturers();
@@ -66,12 +71,10 @@ export default function UploadPortal() {
     defaultValues: { isAnonymous: false },
   });
 
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      const selectedFile = acceptedFiles[0];
-      if (!selectedFile) return;
-
+  const analyzeFile = useCallback(
+    async (selectedFile: File, sourceImageCount = 0) => {
       setFile(selectedFile);
+      setConvertedImageCount(sourceImageCount);
       setStep("processing");
       setErrorMsg("");
 
@@ -120,14 +123,55 @@ export default function UploadPortal() {
         );
         setStep("dropzone");
         setFile(null);
+        setConvertedImageCount(0);
       }
     },
     [setValue, courses, lecturers],
   );
 
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const selectedFile = acceptedFiles[0];
+      if (selectedFile) void analyzeFile(selectedFile);
+    },
+    [analyzeFile],
+  );
+
+  const onChooseImages = async (event: ChangeEvent<HTMLInputElement>) => {
+    const images = Array.from(event.currentTarget.files || []);
+    event.currentTarget.value = "";
+    if (images.length === 0) return;
+
+    const sourceSize = images.reduce((total, image) => total + image.size, 0);
+    if (sourceSize > 40 * 1024 * 1024) {
+      setErrorMsg("The selected images must total 40 MB or less.");
+      return;
+    }
+
+    setErrorMsg("");
+    setStep("converting");
+    try {
+      const pdfBlob = await convertImagesToPdf(images);
+      if (pdfBlob.size > 20 * 1024 * 1024) {
+        throw new Error("The converted PDF is over 20 MB. Try fewer or smaller images.");
+      }
+      const pdfFile = new File([pdfBlob], "combined-images.pdf", {
+        type: "application/pdf",
+        lastModified: Date.now(),
+      });
+      await analyzeFile(pdfFile, images.length);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Could not convert the selected images.");
+      setStep("dropzone");
+      setFile(null);
+      setConvertedImageCount(0);
+    }
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     maxSize: 20 * 1024 * 1024,
+    maxFiles: 1,
     accept: {
       "application/pdf": [".pdf"],
       "image/jpeg": [".jpg", ".jpeg"],
@@ -189,25 +233,63 @@ export default function UploadPortal() {
           )}
 
           {step === "dropzone" && (
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-card hover:border-primary/50"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-1">
-                {isDragActive
-                  ? "Drop file here..."
-                  : "Click or drag file to upload"}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Supports PDF, JPG, PNG, and ZIP (Max 20MB)
-              </p>
+            <div className="space-y-4">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition-colors ${
+                  isDragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card hover:border-primary/50"
+                }`}
+              >
+                <input {...getInputProps()} />
+                <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-1">
+                  {isDragActive
+                    ? "Drop file here..."
+                    : "Click or drag one file to upload"}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Supports PDF, JPG, PNG, and ZIP (Max 20MB)
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <Images className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <div>
+                    <h3 className="font-medium text-foreground">Combine multiple images into one PDF</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Select JPG or PNG pages in order. The PDF is created on your device before analysis and upload.
+                    </p>
+                  </div>
+                </div>
+                <input
+                  ref={imagePickerRef}
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  multiple
+                  className="sr-only"
+                  onChange={onChooseImages}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0 gap-2"
+                  onClick={() => imagePickerRef.current?.click()}
+                >
+                  <Images className="h-4 w-4" /> Choose images
+                </Button>
+              </div>
             </div>
+          )}
+
+          {step === "converting" && (
+            <VerifiedCard className="border border-border p-12 text-center">
+              <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-secondary" />
+              <h3 className="mb-2 text-lg font-medium text-foreground">Combining images into a PDF…</h3>
+              <p className="text-sm text-muted-foreground">Your images are being prepared on this device.</p>
+            </VerifiedCard>
           )}
 
           {step === "processing" && (
@@ -250,6 +332,9 @@ export default function UploadPortal() {
                       <p className="text-xs text-muted-foreground">
                         {(file!.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
+                      {convertedImageCount > 0 && (
+                        <p className="text-xs text-primary">PDF combined from {convertedImageCount} images</p>
+                      )}
                     </div>
                   </div>
                   <button

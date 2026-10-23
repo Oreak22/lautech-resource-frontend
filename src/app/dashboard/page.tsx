@@ -33,6 +33,7 @@ import {
   Flag,
   GraduationCap,
   IdCard,
+  ListMusic,
   Mail,
   MessageSquare,
   Pencil,
@@ -147,9 +148,14 @@ export default function DashboardPage() {
                 Manage uploads, lecturer reviews, and recently viewed resources.
               </p>
             </div>
-            <Button asChild className="gap-2">
-              <Link href="/upload"><Upload className="h-4 w-4" /> Upload Resource</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" className="gap-2">
+                <Link href="/dashboard/lists"><ListMusic className="h-4 w-4" /> My Lists</Link>
+              </Button>
+              <Button asChild className="gap-2">
+                <Link href="/upload"><Upload className="h-4 w-4" /> Upload Resource</Link>
+              </Button>
+            </div>
           </header>
 
           {isError && (

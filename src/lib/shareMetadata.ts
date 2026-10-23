@@ -21,6 +21,14 @@ export interface ShareLecturer {
   teachingTags?: string[];
 }
 
+export interface ShareResourceList {
+  name?: string;
+  description?: string;
+  isPublic?: boolean;
+  ownerId?: string | { name?: string } | null;
+  resources?: Array<{ title?: string; category?: string; courseId?: { courseCode?: string } }>;
+}
+
 function apiUrl(path: string) {
   const configured = process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:5000/api";
   const base = configured.replace(/\/+$/, "");
@@ -43,6 +51,9 @@ export const getShareResource = (id: string) =>
 
 export const getShareLecturer = (id: string) =>
   fetchData<ShareLecturer>(`/lecturers/${encodeURIComponent(id)}/profile`);
+
+export const getSharePublicResourceList = (id: string) =>
+  fetchData<ShareResourceList>(`/lists/public/${encodeURIComponent(id)}`);
 
 export async function getPublicOrigin() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();

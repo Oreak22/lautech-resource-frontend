@@ -15,8 +15,19 @@ import { toast } from "@/components/ui/toast";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { axiosClient } from "@/lib/api/axiosClient";
+import { SaveToListButton } from "@/components/resources/SaveToListButton";
 
-export function ResourceCard({ resource }: { resource: Resource }) {
+export function ResourceCard({
+  resource,
+  selectable = false,
+  selected = false,
+  onSelect,
+}: {
+  resource: Resource;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: () => void;
+}) {
   const { user } = useAuthStore();
   const isPastQuestion = resource.category === "Past Question";
   const aiSnippet =
@@ -105,15 +116,23 @@ export function ResourceCard({ resource }: { resource: Resource }) {
       className="p-5 flex flex-col h-full bg-card border-border hover:border-primary/50 transition-colors rounded-xl"
       isVerified={true}
     >
-      <div className="flex items-center gap-2 mb-4">
-        <span
-          className={`text-[10px] font-semibold px-2.5 py-1 rounded-sm border ${isPastQuestion ? "text-purple-400 border-purple-400/30 bg-purple-400/10" : "text-blue-400 border-blue-400/30 bg-blue-400/10"}`}
-        >
-          {resource.category}
-        </span>
-        <span className="text-[10px] font-semibold px-2.5 py-1 rounded-sm border border-border bg-background/50 text-foreground">
-          {session}
-        </span>
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`text-[10px] font-semibold px-2.5 py-1 rounded-sm border ${isPastQuestion ? "text-purple-400 border-purple-400/30 bg-purple-400/10" : "text-blue-400 border-blue-400/30 bg-blue-400/10"}`}
+          >
+            {resource.category}
+          </span>
+          <span className="text-[10px] font-semibold px-2.5 py-1 rounded-sm border border-border bg-background/50 text-foreground">
+            {session}
+          </span>
+        </div>
+        {selectable && (
+          <label className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted/50">
+            <input type="checkbox" checked={selected} onChange={onSelect} className="h-4 w-4 accent-primary" />
+            <span>{selected ? "Selected" : "Select"}</span>
+          </label>
+        )}
       </div>
 
       <div className="flex-1">
@@ -191,6 +210,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <SaveToListButton resourceId={resource._id} resourceTitle={resource.title} />
           <Button
             variant="outline"
             size="sm"

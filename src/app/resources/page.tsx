@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ResourceFilters } from "@/components/resources/ResourceFilters";
 import { ResourceCard } from "@/components/resources/ResourceCard";
+import { DownloadResourceListButton } from "@/components/resources/DownloadResourceListButton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layouts/Navbar";
@@ -19,6 +20,7 @@ import { ResourcePagination } from "@/components/resources/ResourcePagination";
 import { useCourses, useDepartments } from "@/hooks/useDirectory";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { Resource } from "@/types/resource";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +40,7 @@ export default function ResourceVaultPage() {
     "newest" | "department" | "level" | "semester"
   >("newest");
   const [page, setPage] = useState(1);
+  const [selectedResources, setSelectedResources] = useState<Resource[]>([]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const profile = profileQuery.data ?? user;
   const profileDepartment = profile?.department?.trim() || undefined;
@@ -93,6 +96,12 @@ export default function ResourceVaultPage() {
       }),
     ),
   ).sort((a, b) => Number(a) - Number(b));
+
+  const toggleResourceSelection = (resource: Resource) => {
+    setSelectedResources((current) => current.some((item) => item._id === resource._id)
+      ? current.filter((item) => item._id !== resource._id)
+      : [...current, resource]);
+  };
 
   // Debounce the search input
   useEffect(() => {
@@ -206,7 +215,13 @@ export default function ResourceVaultPage() {
               ) : recommendedResources.length > 0 ? (
                 <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {recommendedResources.slice(0, 3).map((resource) => (
-                    <ResourceCard key={resource._id} resource={resource} />
+                    <ResourceCard
+                      key={resource._id}
+                      resource={resource}
+                      selectable
+                      selected={selectedResources.some((item) => item._id === resource._id)}
+                      onSelect={() => toggleResourceSelection(resource)}
+                    />
                   ))}
                 </div>
               ) : (
@@ -354,6 +369,38 @@ export default function ResourceVaultPage() {
             </div>
           </div>
 
+          {selectedResources.length > 0 && (
+            <div className="flex flex-col gap-3 rounded-xl border border-primary/25 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium text-foreground" aria-live="polite">
+                  {selectedResources.length} resource{selectedResources.length === 1 ? "" : "s"} selected
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Selection stays while you search or move between pages.</p>
+                <div className="mt-2 flex max-h-20 flex-wrap gap-1.5 overflow-y-auto">
+                  {selectedResources.map((resource) => (
+                    <button
+                      key={resource._id}
+                      type="button"
+                      title={`Remove ${resource.title} from selection`}
+                      aria-label={`Remove ${resource.title} from selection`}
+                      onClick={() => toggleResourceSelection(resource)}
+                      className="inline-flex max-w-56 items-center gap-1 rounded-full bg-background px-2.5 py-1 text-xs text-foreground hover:text-destructive"
+                    >
+                      <span className="truncate">{resource.courseId?.courseCode || resource.title}</span>
+                      <X className="h-3 w-3 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedResources([])}>
+                  Clear selection
+                </Button>
+                <DownloadResourceListButton resources={selectedResources} listName="Selected resources" label="Download selected" />
+              </div>
+            </div>
+          )}
+
           {/* Grid of Resources */}
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -375,7 +422,13 @@ export default function ResourceVaultPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {data?.data.map((resource) => (
-                <ResourceCard key={resource._id} resource={resource} />
+                <ResourceCard
+                  key={resource._id}
+                  resource={resource}
+                  selectable
+                  selected={selectedResources.some((item) => item._id === resource._id)}
+                  onSelect={() => toggleResourceSelection(resource)}
+                />
               ))}
             </div>
           )}

@@ -6,10 +6,10 @@ import {
   LayoutDashboard,
   FileText,
   ShieldAlert,
-  BookOpen,
   UserCheck,
   Settings,
   Flag,
+  ListMusic,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -20,7 +20,7 @@ export function DashboardSidebar() {
   const studentLinks = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { name: "My Uploads", href: "/dashboard/uploads", icon: FileText },
-    { name: "Saved Notes", href: "/dashboard/saved", icon: BookOpen },
+    { name: "Resource Lists", href: "/dashboard/lists", icon: ListMusic },
   ];
 
   const adminLinks = [

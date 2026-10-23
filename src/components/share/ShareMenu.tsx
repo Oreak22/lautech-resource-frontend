@@ -43,6 +43,11 @@ export function ShareMenu({
 }: ShareMenuProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const shareType = path.startsWith("/lecturers/")
+    ? "lecturer"
+    : path.startsWith("/lists/")
+      ? "list"
+      : "resource";
 
   const getShareUrl = () => new URL(path, window.location.origin).toString();
   const getShareText = () =>
@@ -131,7 +136,7 @@ export function ShareMenu({
       </Button>
       <DialogContent className="gap-5 sm:max-w-md">
         <DialogHeader className="pr-8">
-          <DialogTitle>Share this {path.startsWith("/lecturers/") ? "lecturer" : "resource"}</DialogTitle>
+          <DialogTitle>Share this {shareType}</DialogTitle>
           <DialogDescription>
             Send this link to classmates or save it for later.
           </DialogDescription>

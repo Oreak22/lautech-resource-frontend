@@ -11,6 +11,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { recordRecentResource } from "@/lib/recentResources";
 import { ReportDialog } from "@/components/reports/ReportDialog";
 import { ShareMenu } from "@/components/share/ShareMenu";
+import { SaveToListButton } from "@/components/resources/SaveToListButton";
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -67,6 +68,7 @@ export default function ResourcePreviewPage({ params }: PageProps) {
         </div>
         
         <div className="flex items-center gap-3">
+          <SaveToListButton resourceId={resource._id} resourceTitle={resource.title} />
           <ShareMenu
             path={`/resources/${resource._id}`}
             title={resource.title}
