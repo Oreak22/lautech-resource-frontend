@@ -38,7 +38,7 @@ export function resourceListErrorMessage(error: unknown, fallback: string) {
     if (typeof response.error === "string") return response.error;
     if (typeof response.message === "string") return response.message;
   }
-  if (error.response.status === 404) return "The resource-list API route was not found. Confirm the deployed backend includes list support and the API URL ends in /api.";
+  if (error.response.status === 404) return "The server returned 404 for the list API. Confirm NEXT_PUBLIC_API_URL points to the backend host (not the frontend) and ends in /api, and deploy the backend version with /api/lists support.";
   if (error.response.status === 401) return "Your sign-in session is invalid or has expired. Sign in again.";
   return fallback;
 }
