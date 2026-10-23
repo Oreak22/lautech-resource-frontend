@@ -31,7 +31,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 export default function ResourceListsPage() {
   const user = useAuthStore((state) => state.user);
-  const { data: lists = [], isLoading, isError } = useMyResourceLists(user?.id);
+  const { data: lists = [], isLoading, isError, error: listsError } = useMyResourceLists(user?.id);
   const createList = useCreateResourceList(user?.id);
   const updateList = useUpdateResourceList(user?.id);
   const deleteList = useDeleteResourceList(user?.id);
@@ -235,7 +235,7 @@ export default function ResourceListsPage() {
             </form>
           </VerifiedCard>}
 
-          {isError && <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">Could not load your lists. Refresh the page and try again.</p>}
+          {isError && <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{listsError instanceof Error ? listsError.message : "Could not load your lists. Refresh the page and try again."}</p>}
           {isLoading ? (
             <div className="h-36 animate-pulse rounded-xl border border-border bg-card" />
           ) : isError ? null : lists.length === 0 ? (

@@ -14,7 +14,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 export default function ManageResourceListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const user = useAuthStore((state) => state.user);
-  const { data: list, isLoading, isError } = useMyResourceList(user?.id, id);
+  const { data: list, isLoading, isError, error } = useMyResourceList(user?.id, id);
   const removeResource = useRemoveResourceFromList(user?.id);
 
   return (
@@ -31,7 +31,7 @@ export default function ManageResourceListPage({ params }: { params: Promise<{ i
           ) : isError || !list ? (
             <VerifiedCard className="border-border p-8 text-center">
               <h1 className="text-xl font-semibold text-foreground">Could not open this list</h1>
-              <p className="mt-2 text-sm text-muted-foreground">It may have been deleted or you may not have access.</p>
+              <p className="mt-2 text-sm text-muted-foreground">{error instanceof Error ? error.message : "It may have been deleted or you may not have access."}</p>
             </VerifiedCard>
           ) : (
             <>

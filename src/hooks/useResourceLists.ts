@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { axiosClient } from "@/lib/api/axiosClient";
 import type { Resource } from "@/types/resource";
 import { toast } from "@/components/ui/toast";
@@ -28,12 +29,30 @@ interface ListsResponse {
 const mineKey = (userId?: string) => ["resource-lists", "mine", userId] as const;
 const oneMineKey = (userId?: string, listId?: string) => [...mineKey(userId), listId] as const;
 
+export function resourceListErrorMessage(error: unknown, fallback: string) {
+  if (!axios.isAxiosError(error)) return fallback;
+  if (!error.response) return "Could not reach the API. Check the production API URL and backend CORS settings.";
+
+  const response = error.response.data as { error?: unknown; message?: unknown } | string | undefined;
+  if (response && typeof response === "object") {
+    if (typeof response.error === "string") return response.error;
+    if (typeof response.message === "string") return response.message;
+  }
+  if (error.response.status === 404) return "The resource-list API route was not found. Confirm the deployed backend includes list support and the API URL ends in /api.";
+  if (error.response.status === 401) return "Your sign-in session is invalid or has expired. Sign in again.";
+  return fallback;
+}
+
 export function useMyResourceLists(userId?: string) {
   return useQuery({
     queryKey: mineKey(userId),
     queryFn: async () => {
-      const { data } = await axiosClient.get<ListsResponse>("/lists/mine");
-      return data.data;
+      try {
+        const { data } = await axiosClient.get<ListsResponse>("/lists/mine");
+        return data.data;
+      } catch (error) {
+        throw new Error(resourceListErrorMessage(error, "Could not load your lists"));
+      }
     },
     enabled: Boolean(userId),
   });
@@ -43,8 +62,12 @@ export function useMyResourceList(userId?: string, listId?: string) {
   return useQuery({
     queryKey: oneMineKey(userId, listId),
     queryFn: async () => {
-      const { data } = await axiosClient.get<ListResponse>(`/lists/mine/${listId}`);
-      return data.data;
+      try {
+        const { data } = await axiosClient.get<ListResponse>(`/lists/mine/${listId}`);
+        return data.data;
+      } catch (error) {
+        throw new Error(resourceListErrorMessage(error, "Could not load this list"));
+      }
     },
     enabled: Boolean(userId && listId),
   });
@@ -73,7 +96,7 @@ export function useCreateResourceList(userId?: string) {
       queryClient.invalidateQueries({ queryKey: mineKey(userId) });
       toast.add({ title: "List created", description: "Your resource list is ready.", type: "success" });
     },
-    onError: () => toast.add({ title: "Could not create list", description: "Please try again.", type: "error" }),
+    onError: (error) => toast.add({ title: "Could not create list", description: resourceListErrorMessage(error, "Please try again."), type: "error" }),
   });
 }
 
