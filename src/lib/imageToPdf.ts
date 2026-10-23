@@ -1,19 +1,21 @@
 interface PdfImage {
   width: number;
   height: number;
-  jpeg: Uint8Array;
+  jpeg: Uint8Array<ArrayBuffer>;
 }
+
+type PdfBytes = Uint8Array<ArrayBuffer>;
 
 const encoder = new TextEncoder();
 const MAX_IMAGE_EDGE = 2400;
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 
-function text(value: string) {
+function text(value: string): PdfBytes {
   return encoder.encode(value);
 }
 
-function joinBytes(parts: Uint8Array[]) {
+function joinBytes(parts: PdfBytes[]): PdfBytes {
   const result = new Uint8Array(parts.reduce((length, part) => length + part.length, 0));
   let offset = 0;
   for (const part of parts) {
@@ -75,12 +77,12 @@ function makePdf(images: PdfImage[]) {
     0xd3,
     0x0a,
   ]);
-  const objects: Uint8Array[] = [];
+  const objects: PdfBytes[] = [];
   const objectCount = 2 + images.length * 3;
   const offsets = new Array<number>(objectCount + 1).fill(0);
   let byteLength = header.length;
 
-  const addObject = (id: number, body: Uint8Array[]) => {
+  const addObject = (id: number, body: PdfBytes[]) => {
     const object = joinBytes([
       text(`${id} 0 obj\n`),
       ...body,
@@ -134,7 +136,7 @@ function makePdf(images: PdfImage[]) {
     `${crossReference.join("\n")}\ntrailer\n<< /Size ${objectCount + 1} /Root 1 0 R >>\nstartxref\n${crossReferenceOffset}\n%%EOF`,
   );
 
-  return new Blob([header, ...objects, trailer], { type: "application/pdf" });
+  return new Blob([joinBytes([header, ...objects, trailer]).buffer], { type: "application/pdf" });
 }
 
 export async function convertImagesToPdf(files: File[]) {
